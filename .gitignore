@@ -1,0 +1,7 @@
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+
+# System Files
+node_modules
+archivos
+#web0riginal
