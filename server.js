@@ -14,7 +14,7 @@ var nodemailer = require('nodemailer');
 
 app.use(cors())
 
-// var combos = require('./subPag/combos');
+var combos = require('./subPag/combos');
 // var combosPqr = require('./subPag/combosPqr');
 // var estadistica = require('./subPag/estadistica');
 var tokenes = require('./subPag/tokenes');
@@ -68,6 +68,24 @@ app.get("/v1/SOL/Sedes", authenticateToken, function (req, res) {
     })()
 });
 
+
+/**
+ * Cargar las sedes para configuracion
+ */
+ app.get("/v1/SOL/Sedes/Config", authenticateToken, function (req, res) {     
+    (async function () {
+        try {
+            let pool = await sql.connect(config)
+            //Stored procedure    
+            let result2 = await pool.request()
+                .execute('dbo.SP_Obtener_Sedes_Asignacion')
+
+            res.status(200).send(result2.recordset);
+        } catch (err) {
+            res.status(400).send(result2);
+        }
+    })()
+});
 
 /**
  * Cargar preguntas
@@ -198,6 +216,23 @@ app.get("/v1/SOL/Sedes", authenticateToken, function (req, res) {
 });
 
 /**
+ * Cargar Encuestas 
+ */
+ app.get("/v1/SOL/Encuestas/ALL", authenticateToken, function (req, res) {        
+    (async function () {
+        try {
+            let pool = await sql.connect(config)
+            //Stored procedure    
+            let result2 = await pool.request()
+                .execute('dbo.SP_Obtener_Encuestas_All')
+            res.status(200).send(result2.recordset);
+        } catch (err) {
+            res.status(400).send(result2);
+        }
+    })()
+});
+
+/**
  * Cargar Detalles Encuestas 
  */
  app.get("/v1/SOL/Encuestas/:EncuestaId", function (req, res) {  
@@ -223,51 +258,7 @@ app.get("/v1/SOL/Sedes", authenticateToken, function (req, res) {
 });
 
 
-
-/**
- *crear una PQR
- */
- app.post('/v1/PQR', authenticateToken, (req, res) => {
-    (async function () {
-        try {
-            let pool = await sql.connect(config) 
-            //Stored procedure        
-            let result2 = await pool.request()
-                //.input('EmpresaId', sql.Int, req.body.EmpresaId)
-                .input('SedeId', sql.Int, req.body.SedeId)
-                .input('CanalIngresoId', sql.Int, req.body.CanalIngresoId)
-                //.input('DepartamentoId', sql.Int, req.body.DepartamentoId)
-                .input('CiudadId', sql.Int, req.body.CiudadId)
-                .input('TipoIdentificacionId', sql.Int, req.body.Paciente.TipoIdentificacionId)
-                .input('NumeroIdentificacion', sql.VarChar(20), req.body.Paciente.NumeroIdentificacion)
-                .input('NombreCompleto', sql.VarChar(60), req.body.Paciente.NombreCompleto)
-                .input('Responsable', sql.VarChar(60), req.body.Paciente.Responsable)
-                .input('Telefono1', sql.VarChar(60), req.body.Paciente.Telefono1)
-                .input('Telefono2', sql.VarChar(60), req.body.Paciente.Telefono2)
-                .input('Correo', sql.VarChar(60), req.body.Paciente.Correo)
-                .input('Direccion', sql.VarChar(100), req.body.Paciente.Direccion)
-                .input('TipoId', sql.Int, req.body.TipoId)
-                .input('EspecialidadId', sql.Int, req.body.EspecialidadId)
-                .input('MotivoId', sql.Int, req.body.MotivoId)
-                //.input('SubMotivoId', sql.Int, req.body.SubMotivoId)
-                .input('SubMotivoId', sql.Int, 19) // otros
-                .input('Solicitud', sql.VarChar(sql.MAX), req.body.Solicitud)
-                .input('UsuarioId', sql.VarChar(60), req.user.user.Id)
-                .input('ConsecutivoEPS', sql.VarChar(30), req.body.ConsecutivoEPS)
-                .output('PqrId', sql.Int)
-                .output('PacienteId', sql.Int)
-                .output('PacienteContactoId', sql.Int)
-                .output('ResponsablePQR', sql.VarChar(60))
-                .execute('pqr.SP_Crear_PQR')
-
-                enviarMail(result2.output.ResponsablePQR, result2.output.PqrId, false);
-                res.status(200).send(result2.output);
-        } catch (err) {
-            res.status(400).send(err + " " + req.body);
-        }
-    })()
-});
-
+app.use('/', combos);
 app.use('/', tokenes);
 
 
