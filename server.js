@@ -129,11 +129,6 @@ app.get("/v1/SOL/Sedes", authenticateToken, function (req, res) {
             .output('EncuestaId', sql.Int)
             .execute('dbo.SP_Guardar_Respuestas')
             res.status(200).send(result2.output);
-
-            // result2.bulk(table, (err, result) => {
-            //     console.log("error1" + result)
-            //     console.log("error" + err)
-            // })
                 
         } catch (err) {
             res.status(400).send(err + " ");
@@ -168,6 +163,136 @@ app.get("/v1/SOL/Sedes", authenticateToken, function (req, res) {
     })()
 });
 
+/**
+ * Cargar Respuesta
+ */
+ app.get("/v1/SOL/Respuesta/:EncuestaId/:RespuestaId", function (req, res) {  
+  
+    let Guid = req.params.EncuestaId;
+    let Guid2 = req.params.RespuestaId;
+    
+    if(Guid == ''){
+        Guid = 0; 
+    }     
+    if(Guid2 == ''){
+        Guid2 = 0; 
+    } 
+    
+    (async function () {
+        try {
+            let pool = await sql.connect(config)
+            //Stored procedure    
+            let result2 = await pool.request()
+                .input('EncuestaId', sql.Int, Guid)
+                .input('RespuestaId', sql.Int, Guid2)
+                .execute('dbo.SP_Obtener_Respuesta_Detalladas')
+            res.status(200).send(result2.recordset[0]);
+        } catch (err) {
+            res.status(400).send(result2);
+        }
+    })()
+});
+
+
+/**
+ * Cargar Respuesta Seguimiento
+ */
+ app.get("/v1/SOL/Seguimiento/:RespuestaId", function (req, res) {  
+  
+    let Guid2 = req.params.RespuestaId;
+  
+    if(Guid2 == ''){
+        Guid2 = 0; 
+    } 
+    
+    (async function () {
+        try {
+            let pool = await sql.connect(config)
+            //Stored procedure    
+            let result2 = await pool.request()
+                .input('RespuestaId', sql.Int, Guid2)
+                .execute('dbo.SP_Obtener_Respuesta_Seguimiento')
+            res.status(200).send(result2.recordset);
+        } catch (err) {
+            res.status(400).send(result2);
+        }
+    })()
+});
+
+app.post('/v1/SOL/Delegado', authenticateToken, (req, res) => {
+    (async function () {
+        try {
+            let pool = await sql.connect(config)
+            //Stored procedure        
+            let result2 = await pool.request()
+                .input('UsuarioId', sql.VarChar(60), req.user.user.Id)
+                .input('EncuestaId', sql.Int, req.body.EncuestaId)
+                .input('RespuestaId', sql.Int, req.body.RespuestaId)
+                .input('DelegadoId', sql.Int, req.body.DelegadoId)
+                .execute('[dbo].[SP_Editar_Respuesta_Delegado]')
+                res.status(200).send(result2);
+        } catch (err) {
+            res.status(400).send(err + " " + req.body);
+        }
+    })()
+});
+
+
+app.post('/v1/SOL/Indicardor', authenticateToken, (req, res) => {
+    (async function () {
+        try {
+            let pool = await sql.connect(config)
+            //Stored procedure        
+            let result2 = await pool.request()
+                .input('UsuarioId', sql.VarChar(60), req.user.user.Id)
+                .input('EncuestaId', sql.Int, req.body.EncuestaId)
+                .input('RespuestaId', sql.Int, req.body.RespuestaId)
+                .input('Indicador', sql.Int, req.body.Indicador)
+                .execute('[dbo].[SP_Editar_Respuesta_Indicador]')
+                res.status(200).send(result2);
+        } catch (err) {
+            res.status(400).send(err + " " + req.body);
+        }
+    })()
+});
+
+
+app.post('/v1/SOL/Cumplimiento', authenticateToken, (req, res) => {
+    (async function () {
+        try {
+            let pool = await sql.connect(config)
+            //Stored procedure        
+            let result2 = await pool.request()
+                .input('UsuarioId', sql.VarChar(60), req.user.user.Id)
+                .input('EncuestaId', sql.Int, req.body.EncuestaId)
+                .input('RespuestaId', sql.Int, req.body.RespuestaId)
+                .input('Cumplimiento', sql.Int, req.body.Cumplimiento)
+                .execute('[dbo].[SP_Editar_Respuesta_Cumplimiento]')
+                res.status(200).send(result2);
+        } catch (err) {
+            res.status(400).send(err + " " + req.body);
+        }
+    })()
+});
+
+
+app.post('/v1/SOL/Comentario', authenticateToken, (req, res) => {
+    (async function () {
+        try {
+            let pool = await sql.connect(config)
+            //Stored procedure        
+            let result2 = await pool.request()
+                .input('UsuarioId', sql.VarChar(60), req.user.user.Id)
+                .input('EncuestaId', sql.Int, req.body.EncuestaId)
+                .input('RespuestaId', sql.Int, req.body.RespuestaId)
+                .input('Comentario', sql.VarChar(sql.MAX), req.body.Comentario)
+                .execute('[dbo].[SP_Editar_Respuesta_Comentario]')
+                res.status(200).send(result2);
+        } catch (err) {
+            res.status(400).send(err + " " + req.body);
+        }
+    })()
+});
 
 /**
  * Cargar Respuestas 
@@ -193,8 +318,6 @@ app.get("/v1/SOL/Sedes", authenticateToken, function (req, res) {
         }
     })()
 });
-
-
 
 
 /**

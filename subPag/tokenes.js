@@ -12,7 +12,7 @@ const config = {
   user: process.env.USER,
   password: process.env.PASS,
   server: process.env.SERVER_SQL,
-  database: process.env.BDUSER,
+  database: process.env.BD,
   "options": {
       "encrypt": true,
       "enableArithAbort": true
