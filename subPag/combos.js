@@ -37,5 +37,23 @@ const config = {
     })()
 });
 
+/**
+ * Cargar las sedes asignadas a un usuario
+ */
+ combos.get("/v1/SOL/Combo/Empresas", function (req, res) {     
+    (async function () {
+        try {
+            let pool = await sql.connect(config)
+            //Stored procedure    
+            let result2 = await pool.request()
+                .execute('dbo.SP_Obtener_Combo_Empresas')
+
+            res.status(200).send(result2.recordset);
+        } catch (err) {
+            res.status(400).send(result2);
+        }
+    })()
+});
+
 
 module.exports = combos;
