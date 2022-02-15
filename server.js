@@ -50,6 +50,25 @@ function authenticateToken(req, res, next) {
 
 
 /**
+ * Cargar las Periodos asignadas a un usuario
+ */
+ app.get("/v1/SOL/Periodos", authenticateToken, function (req, res) {     
+    (async function () {
+        try {
+            let pool = await sql.connect(config)
+            //Stored procedure    
+            let result2 = await pool.request()
+                .execute('dbo.SP_Obtener_Periodos')
+
+            res.status(200).send(result2.recordset);
+        } catch (err) {
+            res.status(400).send(result2);
+        }
+    })()
+});
+
+
+/**
  * Cargar las sedes asignadas a un usuario
  */
 app.get("/v1/SOL/Sedes", authenticateToken, function (req, res) {     
@@ -219,6 +238,32 @@ app.get("/v1/SOL/Sedes", authenticateToken, function (req, res) {
     })()
 });
 
+
+/**
+ * Cargar pendientes de una sede 
+ */
+ app.get("/v1/SOL/Pendientes/:SedeId", function (req, res) {  
+  
+    let Guid = req.params.SedeId;
+    
+    if(Guid == ''){
+        Guid = 0; 
+    } 
+    
+    (async function () {
+        try {
+            let pool = await sql.connect(config)
+            //Stored procedure    
+            let result2 = await pool.request()
+                .input('SedeId', sql.Int, Guid)
+                .execute('dbo.SP_Obtener_Pendientes_Sedes')
+            res.status(200).send(result2.recordset);
+        } catch (err) {
+            res.status(400).send(result2);
+        }
+    })()
+});
+
 app.post('/v1/SOL/Delegado', authenticateToken, (req, res) => {
     (async function () {
         try {
@@ -286,6 +331,7 @@ app.post('/v1/SOL/FechaRealizacion', authenticateToken, (req, res) => {
                 .input('UsuarioId', sql.VarChar(60), req.user.user.Id)
                 .input('EncuestaId', sql.Int, req.body.EncuestaId)
                 .input('RespuestaId', sql.Int, req.body.RespuestaId)
+                .input('Fecha', sql.Date, req.body.Fecha)
                 .execute('[dbo].[SP_Editar_Respuesta_FechaRealizacion]')
                 res.status(200).send(result2);
         } catch (err) {
@@ -342,11 +388,10 @@ app.post('/v1/SOL/Comentario', authenticateToken, (req, res) => {
  * Cargar Respuestas 
  */
  app.get("/v1/SOL/Respuestas/Asignadas/:EmpresaId/:DelegadoId", function (req, res) {  
-  
     let Guid = req.params.EmpresaId;
     let Guid2 = req.params.DelegadoId;
     
-    if(Guid == ''){
+    if(Guid == '' || Guid == null  || !Guid){
         Guid = 0; 
     } 
 
@@ -423,6 +468,24 @@ app.post('/v1/SOL/Comentario', authenticateToken, (req, res) => {
                 .input('EncuestaId', sql.Int, Guid)
                 .execute('dbo.SP_Obtener_Encuesta_Detalles')
             res.status(200).send(result2.recordset[0]);
+        } catch (err) {
+            res.status(400).send(result2);
+        }
+    })()
+});
+
+
+/**
+ * Cargar Detalles Encuestas 
+ */
+ app.get("/v1/SOL/Reporte/PeriodoActivo", function (req, res) {        
+    (async function () {
+        try {
+            let pool = await sql.connect(config)
+            //Stored procedure    
+            let result2 = await pool.request()
+                .execute('[dbo].[Estadistica_Periodo_Activo]')
+            res.status(200).send(result2.recordsets);
         } catch (err) {
             res.status(400).send(result2);
         }
