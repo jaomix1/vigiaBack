@@ -15,8 +15,6 @@ var nodemailer = require('nodemailer');
 app.use(cors())
 
 var combos = require('./subPag/combos');
-// var combosPqr = require('./subPag/combosPqr');
-// var estadistica = require('./subPag/estadistica');
 var tokenes = require('./subPag/tokenes');
 
 const sql = require('mssql')
@@ -59,6 +57,55 @@ function authenticateToken(req, res, next) {
             //Stored procedure    
             let result2 = await pool.request()
                 .execute('dbo.SP_Obtener_Periodos')
+
+            res.status(200).send(result2.recordset);
+        } catch (err) {
+            res.status(400).send(result2);
+        }
+    })()
+});
+
+/**
+ * Activa un periodo
+ */
+ app.post("/v1/SOL/Periodo", authenticateToken, function (req, res) {   
+    let Guid = req.body.PeriodoId;
+    
+    if(Guid == ''){
+        Guid = 0; 
+    } 
+
+    (async function () {
+        try {
+            let pool = await sql.connect(config)
+            //Stored procedure    
+            let result2 = await pool.request()
+                .input('PeriodoId', sql.Int, Guid)
+                .execute('dbo.SP_Activar_Periodo')
+
+            res.status(200).send(result2.recordset);
+        } catch (err) {
+            res.status(400).send(result2);
+        }
+    })()
+});
+
+/**
+ * Activa un periodo
+ */
+ app.post("/v1/SOL/Periodos/Crear", authenticateToken, function (req, res) {  
+    (async function () {
+        try {
+             
+            console.log(req.body)
+            let pool = await sql.connect(config)
+            //Stored procedure    
+            let result2 = await pool.request()
+                .input('Periodo', sql.VarChar, req.body.Periodo)
+                .input('FechaActivacion', sql.Date, req.body.FechaActivacion)
+                .input('FechaCierre', sql.Date, req.body.FechaFin)
+                .input('FechaFin', sql.Date, req.body.FechaCierre)
+                .execute('dbo.SP_Crear_Periodo')
 
             res.status(200).send(result2.recordset);
         } catch (err) {
@@ -257,6 +304,24 @@ app.get("/v1/SOL/Sedes", authenticateToken, function (req, res) {
             let result2 = await pool.request()
                 .input('SedeId', sql.Int, Guid)
                 .execute('dbo.SP_Obtener_Pendientes_Sedes')
+            res.status(200).send(result2.recordset);
+        } catch (err) {
+            res.status(400).send(result2);
+        }
+    })()
+});
+
+/**
+ * Cargar pendientes de una sede 
+ */
+ app.get("/v1/SOL/PendientesGenerales", function (req, res) {  
+      
+    (async function () {
+        try {
+            let pool = await sql.connect(config)
+            //Stored procedure    
+            let result2 = await pool.request()
+                .execute('dbo.SP_Obtener_Pendientes_Generales')
             res.status(200).send(result2.recordset);
         } catch (err) {
             res.status(400).send(result2);
