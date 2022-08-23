@@ -154,6 +154,71 @@ app.get("/v1/SOL/Sedes", authenticateToken, function (req, res) {
 });
 
 /**
+ * Activa un periodo
+ */
+ app.post("/v1/SOL/Sedes/Crear", authenticateToken, function (req, res) {  
+    (async function () {
+        try {             
+            console.log(req.body)
+            let pool = await sql.connect(config)
+            //Stored procedure    
+            let result2 = await pool.request()
+                .input('EmpresaId', sql.Int, req.body.EmpresaId)
+                .input('Sede', sql.VarChar, req.body.Sede)
+                .input('UsuarioId', sql.VarChar, req.body.UsuarioId)
+                .input('Base', sql.Int, req.body.Base)
+                .execute('dbo.SP_Crear_Sede')
+
+            res.status(200).send(result2.recordset);
+        } catch (err) {
+            res.status(400).send(result2);
+        }
+    })()
+});
+
+/**
+ * Activa un periodo
+ */
+ app.post("/v1/SOL/Sedes/Editar/:SedeId", authenticateToken, function (req, res) {  
+    (async function () {
+        try {             
+            let Guid = req.params.SedeId;
+            let pool = await sql.connect(config)
+            //Stored procedure    
+            let result2 = await pool.request()
+                .input('SedeId', sql.Int, Guid)
+                .input('EmpresaId', sql.Int, req.body.EmpresaId)
+                .input('Sede', sql.VarChar, req.body.Sede)
+                .input('UsuarioId', sql.VarChar, req.body.UsuarioId)
+                .input('Base', sql.Int, req.body.Base)
+                .execute('dbo.SP_Editar_Sede')
+
+            res.status(200).send(result2.recordset);
+        } catch (err) {
+            res.status(400).send(result2);
+        }
+    })()
+});
+
+/**
+ * Cargar las sedes para configuracion
+ */
+ app.get("/v1/SOL/Sedes/Encuestadores", authenticateToken, function (req, res) {     
+    (async function () {
+        try {
+            let pool = await sql.connect(config)
+            //Stored procedure    
+            let result2 = await pool.request()
+                .execute('dbo.SP_Obtener_Usuarios_Encuestadores')
+
+            res.status(200).send(result2.recordset);
+        } catch (err) {
+            res.status(400).send(result2);
+        }
+    })()
+});
+
+/**
  * Cargar preguntas
  */
  app.get("/v1/SOL/Preguntas", authenticateToken, function (req, res) {     
