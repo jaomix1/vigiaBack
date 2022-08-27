@@ -10,6 +10,7 @@ const
     XLSX = require('xlsx'),
     app = express().use(bodyParser.json()); // creates express http server
 var nodemailer = require('nodemailer');
+const XlsxPopulate = require('xlsx-populate');
 
 
 app.use(cors())
@@ -620,6 +621,65 @@ app.post('/v1/SOL/Comentario', authenticateToken, (req, res) => {
             res.status(400).send(result2);
         }
     })()
+});
+
+
+/**
+ * Cargar Detalles Encuestas 
+ */
+ app.get("/v1/SOL/Reporte/Excel", function (req, res) {        
+    try {
+        sql.connect(config).then(pool => {
+            return pool.request()
+                .execute('SP_Exportar_Excel')
+        }).then(result2 => {
+            var fields = Object.keys(result2.recordsets[0][0])
+            var replacer = function (key, value) { return value === null ? '' : value }
+            var csv = result2.recordsets[0].map(function (row) {
+                return fields.map(function (fieldName) {
+                    return row[fieldName]
+                })
+            })
+            var csvAnuladas = result2.recordsets[1].map(function (row) {
+                return fields.map(function (fieldName) {
+                    return row[fieldName]
+                })
+            })
+            csv.unshift(fields);
+            csvAnuladas.unshift(fields); 
+            XlsxPopulate.fromBlankAsync()
+                .then(workbook => {
+                    workbook.addSheet("Todos_Periodos");
+                    
+                    workbook.sheet("Sheet1").row(1).style("bold", true);
+                    workbook.sheet("Todos_Periodos").row(1).style("bold", true);
+
+                    workbook.sheet("Sheet1").cell("A1").value("INFORME DE EXCEL DE TODAS LAS PREGUNTAS QUE NECESITAN GESTIÓN (1-2-3) EN EL PERIODO ");                    
+                    workbook.sheet("Todos_Periodos").cell("A1").value("INFORME DE EXCEL DE TODOS LOS CASOS PENDIENTES X CERRAR DE TODOS LOS PERIODOS ");    
+
+                    workbook.sheet("Sheet1").row(2).style("bold", true);
+                    workbook.sheet("Todos_Periodos").row(2).style("bold", true);
+
+                    workbook.sheet("Sheet1").cell("A2").value(csv);                    
+                    workbook.sheet("Todos_Periodos").cell("A2").value(csvAnuladas);          
+                    
+                    let yourDate = new Date()
+                    yourDate.toISOString().split('T')[0]
+
+                    const file = `./ReporteVigiasSol-`+  yourDate.toISOString().split('T')[0] +`.xlsx`;
+                    workbook.toFileAsync(file).then(f => {
+                        res.download(file);
+                    })
+
+
+                });
+
+        }).catch(err => {
+            res.status(400).send('Error: No encontrado' + err);
+        });
+    } catch (err) {
+        res.status(400).send(result2);
+    }
 });
 
 
