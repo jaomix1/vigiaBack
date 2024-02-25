@@ -4,6 +4,7 @@
   "description": "prueba azure",
   "main": "server.js",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
@@ -14,8 +15,8 @@
     "mv": "^2.1.1",
     "nodemailer": "^6.7.1",
     "xlsx": "^0.17.3",
-    "zip-folder": "^1.0.0",    
-    "xlsx-populate": "^1.21.0"
+    "xlsx-populate": "^1.21.0",
+    "zip-folder": "^1.0.0"
   },
   "scripts": {
     "start": "node server.js"

@@ -98,14 +98,21 @@ app.post("/v1/SOL/Periodos/Crear", authenticateToken, function (req, res) {
     (async function () {
         try {
 
-            console.log(req.body)
+            const Departamentos = new sql.Table();
+            Departamentos.columns.add('Value', sql.Int);
+
+            req.body.Departamentos.forEach((Departamento) => {
+                Departamentos.rows.add(Departamento);
+            });
+
             let pool = await sql.connect(config)
             //Stored procedure    
             let result2 = await pool.request()
                 .input('Periodo', sql.VarChar, req.body.Periodo)
-                .input('FechaActivacion', sql.Date, req.body.FechaActivacion)
-                .input('FechaCierre', sql.Date, req.body.FechaFin)
-                .input('FechaFin', sql.Date, req.body.FechaCierre)
+                .input('Departamentos', Departamentos)
+                // .input('FechaActivacion', sql.Date, req.body.FechaActivacion)
+                // .input('FechaCierre', sql.Date, req.body.FechaFin)
+                // .input('FechaFin', sql.Date, req.body.FechaCierre)
                 .execute('dbo.SP_Crear_Periodo')
 
             res.status(200).send(result2.recordset);
@@ -126,7 +133,7 @@ app.get("/v1/SOL/Sedes", authenticateToken, function (req, res) {
             //Stored procedure    
             let result2 = await pool.request()
                 .input('UsuarioId', sql.VarChar(60), req.user.user.Id)
-                .execute('dbo.SP_Obtener_Usuario_Sedes')
+                .execute('dbo.SP_Obtener_Usuario_Sedes_A_Encuestar')
 
             res.status(200).send(result2.recordset);
         } catch (err) {
@@ -160,7 +167,6 @@ app.get("/v1/SOL/Sedes/Config", authenticateToken, function (req, res) {
 app.post("/v1/SOL/Sedes/Crear", authenticateToken, function (req, res) {
     (async function () {
         try {
-            console.log(req.body)
             let pool = await sql.connect(config)
             //Stored procedure    
             let result2 = await pool.request()
@@ -184,7 +190,6 @@ app.post("/v1/SOL/Sedes/Crear", authenticateToken, function (req, res) {
  * Activa un periodo
  */
 app.post("/v1/SOL/Sedes/Editar/:SedeId", authenticateToken, function (req, res) {
-    console.log(req.body);
     (async function () {
         try {
             let Guid = req.params.SedeId;
